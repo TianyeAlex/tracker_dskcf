@@ -22,4 +22,3 @@ to run :
 
   ./../bin/main
 
-thanks!
