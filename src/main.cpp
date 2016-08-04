@@ -95,7 +95,6 @@ void showdevice(){
         cout << "供应商名： " << rDevInfo.getVendor() << endl;
         cout << "供应商Id: " << rDevInfo.getUsbVendorId() << endl;
         cout << "设备URI: " << rDevInfo.getUri() << endl;
-
     }
 }
 
@@ -327,7 +326,7 @@ int main()
             else 
                 rotation_speed = 0;
 
-            std::cout <<  "-------------------------------------------------------------------------"  << std::endl;
+            std::cout <<  "-----------------------------------------------------------------------"  << std::endl;
             std::cout <<  "linear_speed = " << linear_speed << "  rotation_speed = " << rotation_speed << std::endl;
             std::cout <<  dist_val[0]  << " / " <<  dist_val[1] << " / " << dist_val[2] << " / " << dist_val[3] <<  " / " << dist_val[4] << std::endl;
             std::cout <<  "distance = " << distance << std::endl;
