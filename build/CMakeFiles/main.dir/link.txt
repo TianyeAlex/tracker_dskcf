@@ -1,1 +1,0 @@
-/usr/bin/c++       CMakeFiles/main.dir/src/kcftracker.cpp.o CMakeFiles/main.dir/src/main.cpp.o CMakeFiles/main.dir/src/fhog.cpp.o  -o ../bin/main  -L/home/exbot/Documents/OpenNI-Linux-x64-2.2/Redist -rdynamic -lOpenNI2 -lopencv_contrib -lopencv_core -lopencv_highgui -lopencv_imgproc -Wl,-rpath,/home/exbot/Documents/OpenNI-Linux-x64-2.2/Redist 
