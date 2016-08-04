@@ -23,6 +23,9 @@ link_libraries(
     -lopencv_core 
     -lopencv_highgui
     -lopencv_imgproc 
+    -lboost_system
+    -lboost_filesystem
+    -lboost_thread
     )
 
 FILE(GLOB_RECURSE sourcefiles "src/*.cpp")

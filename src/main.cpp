@@ -3,9 +3,21 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <iomanip>
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+
 #include <OpenNI.h>
 
 #include "kcftracker.hpp"
+
+
+boost::asio::io_service iosev;
+boost::asio::serial_port sp(iosev);
+
+unsigned char startByte = 0xff;
+unsigned char endByte = 0xfe;
+std::string Base_Port = "/dev/ttyUSB0";
 
 using namespace std;
 using namespace openni;
@@ -14,14 +26,17 @@ using namespace cv;
 static const std::string RGB_WINDOW = "RGB Image window";
 static const std::string DEPTH_WINDOW = "DEPTH Image window";
 
-#define Max_linear_speed 0.5
-#define Max_rotation_speed 0.8
+#define Max_linear_speed 0.6
+#define Min_linear_speed 0.4
+#define Min_distance 1.5
+#define Max_distance 5.0
+#define Max_rotation_speed 0.75
 
 float linear_speed = 0;
 float rotation_speed = 0;
 
-float k_linear_speed = 0.3;
-float h_linear_speed = -0.1;
+float k_linear_speed = (Max_linear_speed - Min_linear_speed) / (Max_distance - Min_distance);
+float h_linear_speed = Min_linear_speed - k_linear_speed * Min_distance;
 
 float k_rotation_speed = 0.004;
 float h_rotation_speed_left = 1.2;
@@ -53,6 +68,39 @@ bool LAB = false;
 KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
 
 float dist_val[5] ;
+
+union Max_Value {
+    unsigned char buf[8];
+    struct _FLOAT_ {
+        float _double_vT;
+        float _double_vR;
+    } Double_RAM;
+} Send_Data;
+
+
+void openPort()
+{
+    sp.open(Base_Port);
+    sp.set_option(boost::asio::serial_port::baud_rate(9600));
+    sp.set_option(boost::asio::serial_port::flow_control(boost::asio::serial_port::flow_control::none));
+    sp.set_option(boost::asio::serial_port::parity(boost::asio::serial_port::parity::none));
+    sp.set_option(boost::asio::serial_port::stop_bits(boost::asio::serial_port::stop_bits::one));
+    sp.set_option(boost::asio::serial_port::character_size(8));
+}
+
+/**
+ * send the velocity to the lower machine
+ * @param vTranslation [the translation velocity]    max <= 0.8
+ * @param vRotation    [the rotation velocity]       max <= 1.0
+ */
+void sendVelocity(float vTranslation, float vRotation)
+{
+    Send_Data.Double_RAM._double_vT = vTranslation;
+    Send_Data.Double_RAM._double_vR = vRotation;
+    write(sp, boost::asio::buffer(&startByte, 1));
+    write(sp, boost::asio::buffer(Send_Data.buf, 8));
+    write(sp, boost::asio::buffer(&endByte, 1));
+}
 
 void onMouse(int event, int x, int y, int, void*)
 {
@@ -230,6 +278,8 @@ int main()
     VideoFrameRef  frameDepth;
     VideoFrameRef  frameColor;
 
+    openPort();
+
     while (true)
     {
         // 读取数据流
@@ -305,7 +355,7 @@ int main()
             distance /= num_depth_points;
 
             //calculate linear speed
-            if(distance > 1.0)
+            if(distance > Min_distance)
                 linear_speed = distance * k_linear_speed + h_linear_speed;
             else
                 linear_speed = 0;
@@ -333,9 +383,15 @@ int main()
         }
         // 显示出深度图像
         imshow(DEPTH_WINDOW, depthimage);
+
+        sendVelocity(linear_speed, -rotation_speed);
+
         // 终止快捷键
         if (waitKey(1) == 27)
+        {
+            sendVelocity(0, 0);
             break;
+        }
     }
     // 关闭数据流
     streamDepth.destroy();

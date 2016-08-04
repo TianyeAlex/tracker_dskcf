@@ -8,6 +8,8 @@ dependencies : openni2 opencv2.4
 
 to compile：
 
+  sudo chmod 666 /dev/ttyUSB0
+
   mkdir bin
 
   mkdir build
