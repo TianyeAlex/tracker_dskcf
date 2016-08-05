@@ -95,10 +95,10 @@ public:
     KCFTracker(bool hog = true, bool fixed_window = true, bool multiscale = true, bool lab = true);
 
     // Initialize tracker 
-    virtual void init(const cv::Rect &roi, cv::Mat image);
+    virtual void init(const cv::Rect &roi, cv::Mat rgbimage, cv::Mat depthimage);
     
     // Update position based on the new frame
-    virtual cv::Rect update(cv::Mat image);
+    virtual cv::Rect update(cv::Mat rgbimage, cv::Mat depthimage);
 
     float interp_factor; // linear interpolation factor for adaptation
     float sigma; // gaussian kernel bandwidth
@@ -135,6 +135,9 @@ protected:
     // Calculate sub-pixel peak for one dimension
     float subPixelPeak(float left, float center, float right);
 
+    // Calculate depth of roi
+    float getDepth(cv::Rect roi, cv::Mat depthimage);
+
     cv::Mat _alphaf;
     cv::Mat _prob;
     cv::Mat _tmpl;
@@ -150,4 +153,5 @@ private:
     int _gaussian_size;
     bool _hogfeatures;
     bool _labfeatures;
+
 };

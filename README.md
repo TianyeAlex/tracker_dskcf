@@ -4,11 +4,11 @@ environment : Ubuntu 14.04
 
 dependencies : openni2 opencv2.4
 
+to prepare :
 
+	sudo chmod 666 /dev/ttyUSB0
 
 to compile：
-
-  sudo chmod 666 /dev/ttyUSB0
 
   mkdir bin
 

@@ -158,24 +158,31 @@ KCFTracker::KCFTracker(bool hog, bool fixed_window, bool multiscale, bool lab)
 }
 
 // Initialize tracker 
-void KCFTracker::init(const cv::Rect &roi, cv::Mat image)
+void KCFTracker::init(const cv::Rect &roi, cv::Mat rgbimage, cv::Mat depthimage)
 {
     _roi = roi;
     assert(roi.width >= 0 && roi.height >= 0);
-    _tmpl = getFeatures(image, 1);
+    _tmpl = getFeatures(rgbimage, 1);
     _prob = createGaussianPeak(size_patch[0], size_patch[1]);
     _alphaf = cv::Mat(size_patch[0], size_patch[1], CV_32FC2, float(0));
     //_num = cv::Mat(size_patch[0], size_patch[1], CV_32FC2, float(0));
     //_den = cv::Mat(size_patch[0], size_patch[1], CV_32FC2, float(0));
     train(_tmpl, 1.0); // train with initial frame
+
+    curr_depth = getDepth(_roi, depthimage);
+    std::cout << curr_depth << std::endl;
  }
 // Update position based on the new frame
-cv::Rect KCFTracker::update(cv::Mat image)
+cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
 {
     if (_roi.x + _roi.width <= 0) _roi.x = -_roi.width + 1;
     if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 1;
     if (_roi.x >= image.cols - 1) _roi.x = image.cols - 2;
     if (_roi.y >= image.rows - 1) _roi.y = image.rows - 2;
+
+    prev_depth = curr_depth;
+    curr_depth = getDepth(_roi, depthimage);
+    // std::cout << curr_depth << std::endl;
 
     float cx = _roi.x + _roi.width / 2.0f;
     float cy = _roi.y + _roi.height / 2.0f;
@@ -195,6 +202,7 @@ cv::Rect KCFTracker::update(cv::Mat image)
             _scale /= scale_step;
             _roi.width /= scale_step;
             _roi.height /= scale_step;
+            std::cout << " scale_step smaller used : " << scale_step << std::endl;
         }
 
         // Test at a bigger _scale
@@ -206,7 +214,26 @@ cv::Rect KCFTracker::update(cv::Mat image)
             _scale *= scale_step;
             _roi.width *= scale_step;
             _roi.height *= scale_step;
+            std::cout << " scale_step bigger used : " << scale_step << std::endl;
         }
+
+        // Test use depth data
+        float scale_depth = prev_depth / curr_depth;
+        //std::cout << " scale_depth " << scale_depth << std::endl;
+        if(scale_depth > 0)
+        {
+            new_res = detect(_tmpl, getFeatures(image, 0, scale_depth), new_peak_value);
+
+            if (new_peak_value > peak_value) {
+                res = new_res;
+                peak_value = new_peak_value;
+                //_scale *= scale_step;
+                _roi.width *= scale_depth;
+                _roi.height *= scale_depth;
+                std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
+            }
+        }
+
     }
 
     // Adjust by cell size and _scale
@@ -523,3 +550,73 @@ float KCFTracker::subPixelPeak(float left, float center, float right)
     
     return 0.5 * (right - left) / divisor;
 }
+
+float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
+{
+    //get min max distance of roi
+    // float minDist = 1000000;
+    // float maxDist = 0;
+
+    // int row_degin = roi.y;
+    // int col_begin = roi.x;
+    // int row_end = roi.y + roi.height;
+    // int col_end = roi.x + roi.width;
+    // for(int row = row_degin; row < row_end; row++)
+    // {
+    //     for(int col = col_begin; col < col_end; col++)
+    //     {
+    //         if(depthimage.ptr<ushort>(col)[row] < minDist)
+    //             minDist = depthimage.ptr<ushort>(col)[row];
+    //         if(depthimage.ptr<ushort>(col)[row] > maxDist)
+    //             maxDist = depthimage.ptr<ushort>(col)[row];
+    //     }
+    // }
+    // std::cout << depthimage.ptr<ushort>(col_begin)[row_degin] << " | " << depthimage.ptr<ushort>(col_end)[row_end] << std::endl;
+
+    // int x_begin = roi.x;
+    // int x_end = roi.x + roi.width;
+    // int y_begin = roi.y;
+    // int y_end = roi.y + roi.height;
+    // for(int x = x_begin; x < x_end; x++)
+    // {
+    //     for(int y = y_begin; y < y_end; y++)
+    //     {
+    //         if(depthimage.at<ushort>(x,y) < minDist)
+    //             minDist = depthimage.at<ushort>(x,y);
+    //         if(depthimage.at<ushort>(x,y) > maxDist)
+    //             maxDist = depthimage.at<ushort>(x,y);
+    //     }
+    // }
+    // std::cout << depthimage.at<ushort>(x_begin,y_begin) << " | " << depthimage.at<ushort>(x_end,y_end) << std::endl;
+
+    float dist_val[5] ;
+    dist_val[0] = depthimage.ptr<ushort>(roi.y+roi.height/3)[roi.x+roi.width/3];
+    dist_val[1] = depthimage.ptr<ushort>(roi.y+roi.height/3)[roi.x+2*roi.width/3];
+    dist_val[2] = depthimage.ptr<ushort>(roi.y+2*roi.height/3)[roi.x+roi.width/3] ;
+    dist_val[3] = depthimage.ptr<ushort>(roi.y+2*roi.height/3)[roi.x+2*roi.width/3] ;
+    dist_val[4] = depthimage.ptr<ushort>(roi.y+roi.height/2)[roi.x+roi.width/2] ;
+
+    for(int i = 0; i < 5; i++)
+        dist_val[i] = dist_val[i] / 1000.0;
+
+    float distance = 0;
+    int num_depth_points = 5;
+    for(int i = 0; i < 5; i++)
+    {
+        if(dist_val[i] > 0.4)
+            distance += dist_val[i];
+        else
+            num_depth_points--;
+    }
+    distance /= num_depth_points;
+
+    //classify every 0.2m
+
+    //look for the class who has the most member (depth)                                                    
+
+    //calcule mean depth of the class
+
+    return distance;
+}
+
+

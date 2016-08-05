@@ -278,7 +278,7 @@ int main()
     VideoFrameRef  frameDepth;
     VideoFrameRef  frameColor;
 
-    openPort();
+    //openPort();
 
     while (true)
     {
@@ -317,7 +317,7 @@ int main()
 
         if(bRenewROI)
         {
-            tracker.init(selectRect, rgbimage);
+            tracker.init(selectRect, rgbimage, depthimage);
             bBeginKCF = true;
             bRenewROI = false;
             enable_get_depth = false;
@@ -325,7 +325,7 @@ int main()
 
         if(bBeginKCF)
         {
-            result = tracker.update(rgbimage);
+            result = tracker.update(rgbimage, depthimage);
             cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 1, 8 );
             enable_get_depth = true;
         }
@@ -376,20 +376,20 @@ int main()
             else 
                 rotation_speed = 0;
 
-            std::cout <<  "-----------------------------------------------------------------------"  << std::endl;
-            std::cout <<  "linear_speed = " << linear_speed << "  rotation_speed = " << rotation_speed << std::endl;
-            std::cout <<  dist_val[0]  << " / " <<  dist_val[1] << " / " << dist_val[2] << " / " << dist_val[3] <<  " / " << dist_val[4] << std::endl;
-            std::cout <<  "distance = " << distance << std::endl;
+            // std::cout <<  "-----------------------------------------------------------------------"  << std::endl;
+            // std::cout <<  "linear_speed = " << linear_speed << "  rotation_speed = " << -rotation_speed << std::endl;
+            // std::cout <<  dist_val[0]  << " / " <<  dist_val[1] << " / " << dist_val[2] << " / " << dist_val[3] <<  " / " << dist_val[4] << std::endl;
+            // std::cout <<  "distance = " << distance << std::endl;
         }
         // 显示出深度图像
         imshow(DEPTH_WINDOW, depthimage);
 
-        sendVelocity(linear_speed, -rotation_speed);
+        //sendVelocity(linear_speed, -rotation_speed);
 
         // 终止快捷键
-        if (waitKey(1) == 27)
+        if (waitKey(30) == 27)
         {
-            sendVelocity(0, 0);
+            //sendVelocity(0, 0);
             break;
         }
     }
