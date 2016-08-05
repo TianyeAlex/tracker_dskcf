@@ -92,9 +92,10 @@ the use of this software, even if advised of the possibility of such damage.
 KCFTracker::KCFTracker(bool hog, bool fixed_window, bool multiscale, bool lab)
 {
 
+    occlusion = false;
     // Parameters equal in all cases
     lambda = 0.0001;
-    padding = 2.5; 
+    padding = 3.5; 
     //output_sigma_factor = 0.1;
     output_sigma_factor = 0.125;
 
@@ -170,11 +171,13 @@ void KCFTracker::init(const cv::Rect &roi, cv::Mat rgbimage, cv::Mat depthimage)
     train(_tmpl, 1.0); // train with initial frame
 
     curr_depth = getDepth(_roi, depthimage);
-    std::cout << curr_depth << std::endl;
+    t0_depth = curr_depth;
+    std::cout << " t0_depth " << curr_depth << std::endl;
  }
 // Update position based on the new frame
 cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
 {
+
     if (_roi.x + _roi.width <= 0) _roi.x = -_roi.width + 1;
     if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 1;
     if (_roi.x >= image.cols - 1) _roi.x = image.cols - 2;
@@ -191,6 +194,31 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
     float peak_value;
     cv::Point2f res = detect(_tmpl, getFeatures(image, 0, 1.0f), peak_value);
 
+    //std::cout << "reponse : " << peak_value << std::endl;
+
+    float d_value = curr_depth - prev_depth;
+    if(d_value < 0)
+        d_value = -d_value;
+    std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
+
+    if( d_value > 0.1 && peak_value < 0.3 )
+    {
+        occlusion = true;
+        t0_depth = prev_depth;
+        std::cout << " -------------------------------occlusion-------------------------- " << std::endl;
+    }
+
+    if( occlusion )
+    {
+        if(curr_depth - t0_depth < 0.1 && peak_value > 0.3)
+        {
+            occlusion = false;
+            std::cout << " -------------------------------no occlusion-------------------------- " << std::endl;
+        }
+        else
+            return _roi;
+    }
+
     if (scale_step != 1) {
         // Test at a smaller _scale
         float new_peak_value;
@@ -202,7 +230,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
             _scale /= scale_step;
             _roi.width /= scale_step;
             _roi.height /= scale_step;
-            std::cout << " scale_step smaller used : " << scale_step << std::endl;
+            //std::cout << " scale_step smaller used : " << scale_step << std::endl;
         }
 
         // Test at a bigger _scale
@@ -214,7 +242,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
             _scale *= scale_step;
             _roi.width *= scale_step;
             _roi.height *= scale_step;
-            std::cout << " scale_step bigger used : " << scale_step << std::endl;
+            //std::cout << " scale_step bigger used : " << scale_step << std::endl;
         }
 
         // Test use depth data
@@ -222,7 +250,8 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
         //std::cout << " scale_depth " << scale_depth << std::endl;
         if(scale_depth > 0)
         {
-            new_res = detect(_tmpl, getFeatures(image, 0, scale_depth), new_peak_value);
+            float new_peak_value;
+            cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, scale_depth), new_peak_value);
 
             if (new_peak_value > peak_value) {
                 res = new_res;
@@ -230,9 +259,36 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
                 //_scale *= scale_step;
                 _roi.width *= scale_depth;
                 _roi.height *= scale_depth;
-                std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
+                //std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
             }
+
         }
+        // else
+        // {
+        //     float new_peak_value;
+        //     cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, 1.0f / scale_step), new_peak_value);
+
+        //     if (scale_weight * new_peak_value > peak_value) {
+        //         res = new_res;
+        //         peak_value = new_peak_value;
+        //         _scale /= scale_step;
+        //         _roi.width /= scale_step;
+        //         _roi.height /= scale_step;
+        //         //std::cout << " scale_step smaller used : " << scale_step << std::endl;
+        //     }
+
+        //     // Test at a bigger _scale
+        //     new_res = detect(_tmpl, getFeatures(image, 0, scale_step), new_peak_value);
+
+        //     if (scale_weight * new_peak_value > peak_value) {
+        //         res = new_res;
+        //         peak_value = new_peak_value;
+        //         _scale *= scale_step;
+        //         _roi.width *= scale_step;
+        //         _roi.height *= scale_step;
+        //         //std::cout << " scale_step bigger used : " << scale_step << std::endl;
+        //     }
+        // }
 
     }
 
@@ -246,9 +302,13 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
     if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 2;
 
     assert(_roi.width >= 0 && _roi.height >= 0);
-    cv::Mat x = getFeatures(image, 0);
-    train(x, interp_factor);
 
+    if(occlusion == false)
+    {
+        cv::Mat x = getFeatures(image, 0);
+        train(x, interp_factor);
+    }
+    
     return _roi;
 }
 

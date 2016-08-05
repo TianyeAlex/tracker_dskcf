@@ -110,8 +110,10 @@ public:
     int template_size; // template size
     float scale_step; // scale step for multi-scale estimation
     float scale_weight;  // to downweight detection scores of other scales for added stability
+    float t0_depth; 
     float prev_depth;  
     float curr_depth;
+    bool occlusion;
 
 protected:
     // Detect object in the current frame.

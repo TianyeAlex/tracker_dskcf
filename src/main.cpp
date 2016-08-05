@@ -269,7 +269,7 @@ int main()
 
     // 创建OpenCV图像窗口
     namedWindow(RGB_WINDOW, CV_WINDOW_AUTOSIZE);
-    namedWindow(DEPTH_WINDOW, CV_WINDOW_AUTOSIZE);
+    //namedWindow(DEPTH_WINDOW, CV_WINDOW_AUTOSIZE);
 
     // 获得最大深度值
     int iMaxDepth = streamDepth.getMaxPixelValue();
@@ -382,7 +382,7 @@ int main()
             // std::cout <<  "distance = " << distance << std::endl;
         }
         // 显示出深度图像
-        imshow(DEPTH_WINDOW, depthimage);
+        //imshow(DEPTH_WINDOW, depthimage);
 
         //sendVelocity(linear_speed, -rotation_speed);
 
