@@ -326,12 +326,12 @@ int main()
         if(bBeginKCF)
         {
             result = tracker.update(rgbimage, depthimage);
-            cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 1, 8 );
+            cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 2, 8 );
             enable_get_depth = true;
         }
         else
             cv::rectangle(rgbimage, selectRect, cv::Scalar(255, 0, 0), 2, 8, 0);
-        
+
         // 然后显示彩色图像
         imshow(RGB_WINDOW, rgbimage);
 
