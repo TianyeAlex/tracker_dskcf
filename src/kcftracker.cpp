@@ -199,7 +199,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
     float d_value = curr_depth - prev_depth;
     if(d_value < 0)
         d_value = -d_value;
-    std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
+    //std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
 
     if( d_value > 0.1 && peak_value < 0.3 )
     {
@@ -219,7 +219,8 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
             return _roi;
     }
 
-    if (scale_step != 1) {
+    if (scale_step != 1) 
+    {
         // Test at a smaller _scale
         float new_peak_value;
         cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, 1.0f / scale_step), new_peak_value);
@@ -230,7 +231,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
             _scale /= scale_step;
             _roi.width /= scale_step;
             _roi.height /= scale_step;
-            //std::cout << " scale_step smaller used : " << scale_step << std::endl;
+            std::cout << " scale_step smaller used : " << scale_step << std::endl;
         }
 
         // Test at a bigger _scale
@@ -242,7 +243,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
             _scale *= scale_step;
             _roi.width *= scale_step;
             _roi.height *= scale_step;
-            //std::cout << " scale_step bigger used : " << scale_step << std::endl;
+            std::cout << " scale_step bigger used : " << scale_step << std::endl;
         }
 
         // Test use depth data
@@ -259,36 +260,9 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
                 //_scale *= scale_step;
                 _roi.width *= scale_depth;
                 _roi.height *= scale_depth;
-                //std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
+                std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
             }
-
         }
-        // else
-        // {
-        //     float new_peak_value;
-        //     cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, 1.0f / scale_step), new_peak_value);
-
-        //     if (scale_weight * new_peak_value > peak_value) {
-        //         res = new_res;
-        //         peak_value = new_peak_value;
-        //         _scale /= scale_step;
-        //         _roi.width /= scale_step;
-        //         _roi.height /= scale_step;
-        //         //std::cout << " scale_step smaller used : " << scale_step << std::endl;
-        //     }
-
-        //     // Test at a bigger _scale
-        //     new_res = detect(_tmpl, getFeatures(image, 0, scale_step), new_peak_value);
-
-        //     if (scale_weight * new_peak_value > peak_value) {
-        //         res = new_res;
-        //         peak_value = new_peak_value;
-        //         _scale *= scale_step;
-        //         _roi.width *= scale_step;
-        //         _roi.height *= scale_step;
-        //         //std::cout << " scale_step bigger used : " << scale_step << std::endl;
-        //     }
-        // }
 
     }
 

@@ -110,7 +110,7 @@ void onMouse(int event, int x, int y, int, void*)
         selectRect.y = MIN(origin.y, y);
         selectRect.width = abs(x - origin.x);   
         selectRect.height = abs(y - origin.y);
-        //selectRect &= cv::Rect(0, 0, rgbimage.cols, rgbimage.rows);
+        selectRect &= cv::Rect(0, 0, rgbimage.cols, rgbimage.rows);
     }
     if (event == CV_EVENT_LBUTTONDOWN)
     {
@@ -329,6 +329,9 @@ int main()
             cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 1, 8 );
             enable_get_depth = true;
         }
+        else
+            cv::rectangle(rgbimage, selectRect, cv::Scalar(255, 0, 0), 2, 8, 0);
+        
         // 然后显示彩色图像
         imshow(RGB_WINDOW, rgbimage);
 
