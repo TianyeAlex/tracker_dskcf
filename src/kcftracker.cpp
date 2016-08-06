@@ -199,21 +199,21 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
     float d_value = curr_depth - prev_depth;
     if(d_value < 0)
         d_value = -d_value;
-    //std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
+    std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
 
-    if( d_value > 0.1 && peak_value < 0.3 )
+    if( d_value > 0.09 && peak_value < 0.3 )
     {
         occlusion = true;
         t0_depth = prev_depth;
-        std::cout << " -------------------------------occlusion-------------------------- " << std::endl;
+        std::cout << " -------------------------------  occlusion  -------------------------- " << std::endl;
     }
 
     if( occlusion )
     {
-        if(curr_depth - t0_depth < 0.1 && peak_value > 0.3)
+        if(curr_depth - t0_depth < 0.09 && peak_value > 0.3)
         {
             occlusion = false;
-            std::cout << " -------------------------------no occlusion-------------------------- " << std::endl;
+            std::cout << " **************************  no ----- occlusion  ************************ " << std::endl;
         }
         else
             return _roi;

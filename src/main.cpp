@@ -317,6 +317,11 @@ int main()
 
         if(bRenewROI)
         {
+            if (selectRect.width <= 0 || selectRect.height <= 0)
+            {
+                bRenewROI = false;
+                continue;
+            }
             tracker.init(selectRect, rgbimage, depthimage);
             bBeginKCF = true;
             bRenewROI = false;
@@ -390,12 +395,13 @@ int main()
         //sendVelocity(linear_speed, -rotation_speed);
 
         // 终止快捷键
-        if (waitKey(30) == 27)
+        if (waitKey(30) >= 0)
         {
             //sendVelocity(0, 0);
             break;
         }
     }
+    destroyWindow(RGB_WINDOW);
     // 关闭数据流
     streamDepth.destroy();
     streamColor.destroy();
