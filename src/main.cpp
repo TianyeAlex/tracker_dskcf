@@ -330,6 +330,7 @@ int main()
 
         if(bBeginKCF)
         {
+            
             result = tracker.update(rgbimage, depthimage);
             cv::rectangle(rgbimage, result, cv::Scalar( 0, 255, 255 ), 2, 8 );
             enable_get_depth = true;

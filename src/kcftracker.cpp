@@ -80,6 +80,8 @@ or tort (including negligence or otherwise) arising in any way out of
 the use of this software, even if advised of the possibility of such damage.
  */
 #include <iostream>
+#include <vector>
+#include <fstream>
 #ifndef _KCFTRACKER_HEADERS
 #include "kcftracker.hpp"
 #include "ffttools.hpp"
@@ -87,6 +89,8 @@ the use of this software, even if advised of the possibility of such damage.
 #include "fhog.hpp"
 #include "labdata.hpp"
 #endif
+
+using namespace std;
 
 // Constructor
 KCFTracker::KCFTracker(bool hog, bool fixed_window, bool multiscale, bool lab)
@@ -172,7 +176,7 @@ void KCFTracker::init(const cv::Rect &roi, cv::Mat rgbimage, cv::Mat depthimage)
 
     curr_depth = getDepth(_roi, depthimage);
     t0_depth = curr_depth;
-    std::cout << " t0_depth " << curr_depth << std::endl;
+    //std::cout << " t0_depth " << curr_depth << std::endl;
  }
 // Update position based on the new frame
 cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
@@ -185,7 +189,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
 
     prev_depth = curr_depth;
     curr_depth = getDepth(_roi, depthimage);
-    // std::cout << curr_depth << std::endl;
+    //std::cout << curr_depth << std::endl;
 
     float cx = _roi.x + _roi.width / 2.0f;
     float cy = _roi.y + _roi.height / 2.0f;
@@ -199,7 +203,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
     float d_value = curr_depth - prev_depth;
     if(d_value < 0)
         d_value = -d_value;
-    std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
+    //std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
 
     if( d_value > 0.09 && peak_value < 0.3 )
     {
@@ -587,68 +591,99 @@ float KCFTracker::subPixelPeak(float left, float center, float right)
 
 float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
 {
-    //get min max distance of roi
-    // float minDist = 1000000;
-    // float maxDist = 0;
+    ofstream fout("result.txt");
 
-    // int row_degin = roi.y;
-    // int col_begin = roi.x;
-    // int row_end = roi.y + roi.height;
-    // int col_end = roi.x + roi.width;
-    // for(int row = row_degin; row < row_end; row++)
-    // {
-    //     for(int col = col_begin; col < col_end; col++)
-    //     {
-    //         if(depthimage.ptr<ushort>(col)[row] < minDist)
-    //             minDist = depthimage.ptr<ushort>(col)[row];
-    //         if(depthimage.ptr<ushort>(col)[row] > maxDist)
-    //             maxDist = depthimage.ptr<ushort>(col)[row];
-    //     }
-    // }
-    // std::cout << depthimage.ptr<ushort>(col_begin)[row_degin] << " | " << depthimage.ptr<ushort>(col_end)[row_end] << std::endl;
-
-    // int x_begin = roi.x;
-    // int x_end = roi.x + roi.width;
-    // int y_begin = roi.y;
-    // int y_end = roi.y + roi.height;
-    // for(int x = x_begin; x < x_end; x++)
-    // {
-    //     for(int y = y_begin; y < y_end; y++)
-    //     {
-    //         if(depthimage.at<ushort>(x,y) < minDist)
-    //             minDist = depthimage.at<ushort>(x,y);
-    //         if(depthimage.at<ushort>(x,y) > maxDist)
-    //             maxDist = depthimage.at<ushort>(x,y);
-    //     }
-    // }
-    // std::cout << depthimage.at<ushort>(x_begin,y_begin) << " | " << depthimage.at<ushort>(x_end,y_end) << std::endl;
-
-    float dist_val[5] ;
-    dist_val[0] = depthimage.ptr<ushort>(roi.y+roi.height/3)[roi.x+roi.width/3];
-    dist_val[1] = depthimage.ptr<ushort>(roi.y+roi.height/3)[roi.x+2*roi.width/3];
-    dist_val[2] = depthimage.ptr<ushort>(roi.y+2*roi.height/3)[roi.x+roi.width/3] ;
-    dist_val[3] = depthimage.ptr<ushort>(roi.y+2*roi.height/3)[roi.x+2*roi.width/3] ;
-    dist_val[4] = depthimage.ptr<ushort>(roi.y+roi.height/2)[roi.x+roi.width/2] ;
-
-    for(int i = 0; i < 5; i++)
-        dist_val[i] = dist_val[i] / 1000.0;
-
-    float distance = 0;
-    int num_depth_points = 5;
-    for(int i = 0; i < 5; i++)
+    //initialise vectors
+    float minDist = 0.0;
+    float maxDist = 6.0;
+    float interval = 0.05;
+    vector<vector<float>> result; 
+    for(int i = 0; i < (maxDist - minDist) / interval; i++)
     {
-        if(dist_val[i] > 0.4)
-            distance += dist_val[i];
-        else
-            num_depth_points--;
+        vector<float> v;
+        result.push_back(v);
     }
-    distance /= num_depth_points;
 
-    //classify every 0.2m
+    int count[result.size()];
 
-    //look for the class who has the most member (depth)                                                    
+    //calculate depth distribution
+    int row_degin = roi.y;
+    int col_begin = roi.x;
+    int row_end = roi.y + roi.height;
+    int col_end = roi.x + roi.width;
+    for(int row = row_degin; row < row_end; row++)
+    {
+        for(int col = col_begin; col < col_end; col++)
+        {
+            if(depthimage.ptr<ushort>(col)[row] > 0)
+            {
+                float depth = depthimage.ptr<ushort>(col)[row] / 1000.0;
+                //cout << "depth " << depth << endl; 
+                int inter = int(depth / interval);
+                result.at(inter).push_back(depth);
+            }
+        }
+    }
 
-    //calcule mean depth of the class
+
+    int maxSize = 0;
+    int index = 0;
+    if(fout.is_open())
+    {
+        for(int i = 0; i < result.size(); i++)
+        {
+            fout << "vector " << i << " size "<< " " << result.at(i).size() << endl;
+            if(result.at(i).size() > maxSize)
+            {
+                maxSize = result.at(i).size();
+                index = i;
+            }
+
+            if(i < 2)
+            {
+                count[i] = result.at(i).size() + result.at(i+1).size() + result.at(i+2).size();
+            }
+            else if(i >= 2 && i < result.size() - 2)
+            {
+                count[i] = result.at(i-2).size() + result.at(i-1).size() + result.at(i).size() + 
+                result.at(i+1).size() + result.at(i+2).size();
+            }
+            else
+            {
+                count[i] = result.at(i-2).size() + result.at(i-1).size() + result.at(i).size();
+            }
+            // fout << "count " << i << " " << count[i] << endl << endl;
+        }
+        fout << "index : " << index  << "  maxSize : " << maxSize << endl;
+    }
+
+    int maxCount = 0;
+    int indexCount = 0;
+    for(int i = 0; i < result.size(); i++)
+    {
+        if(count[i] > maxCount)
+        {
+            maxCount = count[i];
+            indexCount = i;
+        }
+        fout << "count " << i << " : " << count[i] << endl;
+    }
+    
+    fout << "indexCount " << indexCount <<" maxCount : " << maxCount << endl;
+                           
+
+    //calcule mean depth of the vector
+    float distance = 0;
+    for(int i = indexCount - 2; i <= indexCount + 2; i++)
+    {
+        for(int j = 0 ; j < result.at(i).size(); j++)
+            distance += result.at(i).at(j);
+    } 
+
+    distance /= count[indexCount];
+
+    fout.close();
+    cout << " distance " << distance << endl;
 
     return distance;
 }
