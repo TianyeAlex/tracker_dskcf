@@ -178,6 +178,7 @@ void KCFTracker::init(const cv::Rect &roi, cv::Mat rgbimage, cv::Mat depthimage)
     t0_depth = curr_depth;
     //std::cout << " t0_depth " << curr_depth << std::endl;
  }
+
 // Update position based on the new frame
 cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
 {
@@ -598,6 +599,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
     float maxDist = 6.0;
     float interval = 0.05;
     vector<vector<float>> result; 
+
     for(int i = 0; i < (maxDist - minDist) / interval; i++)
     {
         vector<float> v;
@@ -607,17 +609,17 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
     int count[result.size()];
 
     //calculate depth distribution
-    int row_degin = roi.y;
-    int col_begin = roi.x;
-    int row_end = roi.y + roi.height;
-    int col_end = roi.x + roi.width;
+    int row_degin = roi.y + roi.height / 3;
+    int col_begin = roi.x + roi.width / 3;
+    int row_end = roi.y + 2 * roi.height / 3;
+    int col_end = roi.x + 2 * roi.width / 3;
     for(int row = row_degin; row < row_end; row++)
     {
         for(int col = col_begin; col < col_end; col++)
         {
-            if(depthimage.ptr<ushort>(col)[row] > 0)
+            if(depthimage.at<ushort>(row, col) > 0)
             {
-                float depth = depthimage.ptr<ushort>(col)[row] / 1000.0;
+                float depth = depthimage.at<ushort>(row, col) / 1000.0;
                 //cout << "depth " << depth << endl; 
                 int inter = int(depth / interval);
                 result.at(inter).push_back(depth);
@@ -684,6 +686,38 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
 
     fout.close();
     cout << " distance " << distance << endl;
+
+
+    // float dist_val[5] ;
+    // dist_val[0] = depthimage.at<ushort>(roi.y+roi.height/3, roi.x+roi.width/3);
+    // dist_val[1] = depthimage.at<ushort>(roi.y+roi.height/3, roi.x+2*roi.width/3);
+    // dist_val[2] = depthimage.at<ushort>(roi.y+2*roi.height/3, roi.x+roi.width/3) ;
+    // dist_val[3] = depthimage.at<ushort>(roi.y+2*roi.height/3, roi.x+2*roi.width/3) ;
+    // dist_val[4] = depthimage.at<ushort>(roi.y+roi.height/2, roi.x+roi.width/2) ;
+
+    // cout << " ***************** " << endl;
+    // cout << " distance1 " << dist_val[0] << endl;
+    // cout << " distance2 " << dist_val[1] << endl;
+    // cout << " distance3 " << dist_val[2] << endl;
+    // cout << " distance4 " << dist_val[3] << endl;
+    // cout << " distance5 " << dist_val[4] << endl;
+    // cout << " ***************** " << endl;
+
+    // for(int i = 0; i < 5; i++)
+    //     dist_val[i] = dist_val[i] / 1000.0;
+
+    // float distance = 0;
+    // int num_depth_points = 5;
+    // for(int i = 0; i < 5; i++)
+    // {
+    //     if(dist_val[i] > 0.4)
+    //         distance += dist_val[i];
+    //     else
+    //         num_depth_points--;
+    // }
+    // distance /= num_depth_points;
+
+    //cout << " distance " << distance << endl;
 
     return distance;
 }
