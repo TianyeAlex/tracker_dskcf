@@ -99,7 +99,7 @@ KCFTracker::KCFTracker(bool hog, bool fixed_window, bool multiscale, bool lab)
     occlusion = false;
     // Parameters equal in all cases
     lambda = 0.0001;
-    padding = 3.5; 
+    padding = 2.5; 
     //output_sigma_factor = 0.1;
     output_sigma_factor = 0.125;
 
@@ -190,43 +190,68 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
 
     prev_depth = curr_depth;
     curr_depth = getDepth(_roi, depthimage);
+    float d_value = curr_depth - prev_depth;
+    if(d_value < 0)
+        d_value = -d_value;
     //std::cout << curr_depth << std::endl;
 
     float cx = _roi.x + _roi.width / 2.0f;
     float cy = _roi.y + _roi.height / 2.0f;
 
-
     float peak_value;
     cv::Point2f res = detect(_tmpl, getFeatures(image, 0, 1.0f), peak_value);
 
-    //std::cout << "reponse : " << peak_value << std::endl;
-
-    float d_value = curr_depth - prev_depth;
-    if(d_value < 0)
-        d_value = -d_value;
     //std::cout << "reponse : " << peak_value << "  |  d_value : " << d_value << std::endl;
 
-    if( d_value > 0.09 && peak_value < 0.3 )
-    {
-        occlusion = true;
-        t0_depth = prev_depth;
-        std::cout << " -------------------------------  occlusion  -------------------------- " << std::endl;
-    }
+    // if( d_value > 0.15 )
+    // {
+    //     //if(peak_value < 0.4)
+    //     //{
+    //         occlusion = true;
+    //         t0_depth = prev_depth;
+    //         std::cout << " -------------------------------  occlusion  -------------------------- " << std::endl;
+    //         return _roi;
+    //     //}
+        
+    // }
 
-    if( occlusion )
-    {
-        if(curr_depth - t0_depth < 0.09 && peak_value > 0.3)
-        {
-            occlusion = false;
-            std::cout << " **************************  no ----- occlusion  ************************ " << std::endl;
-        }
-        else
-            return _roi;
-    }
+    // if( occlusion )
+    // {
+    //     if(curr_depth - t0_depth < 0.15 || peak_value > 0.4)
+    //     {
+    //         occlusion = false;
+    //         std::cout << " **************************  no ----- occlusion  ************************ " << std::endl;
+    //         cv::Mat x = getFeatures(image, 0);
+    //         train(x, interp_factor);
+            
+    //         return _roi;
+    //     }
+    //     else
+    //         return _roi;
+    // }
 
+
+    float scale_depth;
     if (scale_step != 1) 
     {
-        // Test at a smaller _scale
+        // Test use depth data
+        scale_depth = prev_depth / curr_depth;
+        if(scale_depth > 0)
+        {
+            float new_peak_value;
+            cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, scale_depth), new_peak_value);
+
+            if (new_peak_value > peak_value) {
+                res = new_res;
+                peak_value = new_peak_value;
+                //_scale *= scale_step;
+                _roi.width *= scale_depth;
+                _roi.height *= scale_depth;
+                std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
+            }
+        }
+
+        // // Test at a smaller _scale
         float new_peak_value;
         cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, 1.0f / scale_step), new_peak_value);
 
@@ -250,25 +275,6 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
             _roi.height *= scale_step;
             std::cout << " scale_step bigger used : " << scale_step << std::endl;
         }
-
-        // Test use depth data
-        float scale_depth = prev_depth / curr_depth;
-        //std::cout << " scale_depth " << scale_depth << std::endl;
-        if(scale_depth > 0)
-        {
-            float new_peak_value;
-            cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, scale_depth), new_peak_value);
-
-            if (new_peak_value > peak_value) {
-                res = new_res;
-                peak_value = new_peak_value;
-                //_scale *= scale_step;
-                _roi.width *= scale_depth;
-                _roi.height *= scale_depth;
-                std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
-            }
-        }
-
     }
 
     // Adjust by cell size and _scale
@@ -282,12 +288,9 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
 
     assert(_roi.width >= 0 && _roi.height >= 0);
 
-    if(occlusion == false)
-    {
-        cv::Mat x = getFeatures(image, 0);
-        train(x, interp_factor);
-    }
-    
+    cv::Mat x = getFeatures(image, 0);
+    train(x, interp_factor);
+
     return _roi;
 }
 
@@ -303,14 +306,8 @@ cv::Point2f KCFTracker::detect(cv::Mat z, cv::Mat x, float &peak_value)
     //minMaxLoc only accepts doubles for the peak, and integer points for the coordinates
     cv::Point2i pi;
     double pv;
-
-    cv::Point2i pi_min;
-    double pv_min;
-
-    cv::minMaxLoc(res, &pv_min, &pv, &pi_min, &pi);
-    
+    cv::minMaxLoc(res, NULL, &pv, NULL, &pi);
     peak_value = (float) pv;
-    //std::cout << "min reponse : " << pv_min << " max response :" << pv << std::endl;
 
     //subpixel peak estimation, coordinates will be non-integer
     cv::Point2f p((float)pi.x, (float)pi.y);
@@ -609,10 +606,46 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
     int count[result.size()];
 
     //calculate depth distribution
-    int row_degin = roi.y + roi.height / 3;
-    int col_begin = roi.x + roi.width / 3;
-    int row_end = roi.y + 2 * roi.height / 3;
-    int col_end = roi.x + 2 * roi.width / 3;
+    int row_degin; //= roi_y + roi.height / 3;
+    int col_begin; //= roi_x + roi.width / 3;
+    int row_end; //= roi_y + 2 * roi.height / 3;
+    int col_end; //= roi_x + 2 * roi.width / 3;
+
+    if(roi.y <= 0)
+        row_degin = 0;
+    else if(roi.y >= (depthimage.rows - 10))
+        return 0;
+    else 
+        row_degin = roi.y;
+
+    if(roi.y + roi.height <= 0)
+        return 0;
+    else if(roi.y + roi.height >= depthimage.rows)
+        row_end = depthimage.rows;
+    else 
+        row_end = roi.y + roi.height;
+
+    if(roi.x <= 0)
+        col_begin = 0;
+    else if(roi.x >= depthimage.cols)
+        return 0;
+    else 
+        col_begin = roi.x;
+
+    if(roi.x + roi.width <= 0)
+        return 0;
+    else if(roi.x + roi.width >= depthimage.cols)
+        col_end = depthimage.cols;
+    else 
+        col_end = roi.x + roi.width;
+
+    // cout << "row_degin " << row_degin << endl; 
+    // cout << "row_end " << row_end << endl; 
+    // cout << "col_begin " << col_begin << endl; 
+    // cout << "col_end " << col_end << endl; 
+    // cout << "-------------------------------" << endl;
+
+
     for(int row = row_degin; row < row_end; row++)
     {
         for(int col = col_begin; col < col_end; col++)
@@ -620,8 +653,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
             if(depthimage.at<ushort>(row, col) > 0)
             {
                 float depth = depthimage.at<ushort>(row, col) / 1000.0;
-                //cout << "depth " << depth << endl; 
-                int inter = int(depth / interval);
+                int inter = int(depth / interval); 
                 result.at(inter).push_back(depth);
             }
         }
@@ -634,7 +666,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
     {
         for(int i = 0; i < result.size(); i++)
         {
-            fout << "vector " << i << " size "<< " " << result.at(i).size() << endl;
+            //fout << "vector " << i << " size "<< " " << result.at(i).size() << endl;
             if(result.at(i).size() > maxSize)
             {
                 maxSize = result.at(i).size();
@@ -656,7 +688,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
             }
             // fout << "count " << i << " " << count[i] << endl << endl;
         }
-        fout << "index : " << index  << "  maxSize : " << maxSize << endl;
+        //fout << "index : " << index  << "  maxSize : " << maxSize << endl;
     }
 
     int maxCount = 0;
@@ -668,21 +700,47 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
             maxCount = count[i];
             indexCount = i;
         }
-        fout << "count " << i << " : " << count[i] << endl;
+        //fout << "count " << i << " : " << count[i] << endl;
     }
     
-    fout << "indexCount " << indexCount <<" maxCount : " << maxCount << endl;
+    //fout << "indexCount " << indexCount <<" maxCount : " << maxCount << endl;
                            
 
     //calcule mean depth of the vector
     float distance = 0;
-    for(int i = indexCount - 2; i <= indexCount + 2; i++)
+    // for(int i = 0; i < result.at(indexCount).size(); i++)
+    // {
+    //     distance += result.at(indexCount).at(i);
+    // }
+    // distance /= result.at(indexCount).size();
+    if(indexCount < 2)
     {
-        for(int j = 0 ; j < result.at(i).size(); j++)
-            distance += result.at(i).at(j);
-    } 
-
-    distance /= count[indexCount];
+        for(int i = indexCount; i <= indexCount + 2; i++)
+        {
+            for(int j = 0 ; j < result.at(i).size(); j++)
+                distance += result.at(i).at(j);
+        } 
+        distance /= count[indexCount];
+    }
+    else if(indexCount >= 2 && indexCount < result.size() - 2)
+    {
+        for(int i = indexCount - 2; i <= indexCount + 2; i++)
+        {
+            for(int j = 0 ; j < result.at(i).size(); j++)
+                distance += result.at(i).at(j);
+        } 
+        distance /= count[indexCount];
+    }
+    else
+    {
+        for(int i = indexCount - 2; i <= indexCount; i++)
+        {
+            for(int j = 0 ; j < result.at(i).size(); j++)
+                distance += result.at(i).at(j);
+        } 
+        distance /= count[indexCount];
+    }
+    
 
     fout.close();
     cout << " distance " << distance << endl;
@@ -717,7 +775,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
     // }
     // distance /= num_depth_points;
 
-    //cout << " distance " << distance << endl;
+    // cout << " distance " << distance << endl;
 
     return distance;
 }
