@@ -88,3 +88,8 @@ make
 Ds-kcf算法框图：
 ![image](http://git.aiiage.com:9000/tian.y/tracker-dskcf/uploads/9dc0b9f171ef269136f40d8b3bc01352/Screenshot_from_2016-08-20_17_52_47.png)
 
+### 1.基于深度图像计算目标框内目标的深度信息。
+
+### 2.根据深度信息计算目标框的大小比例。
+
+### 2.根据深度信息判断遮挡问题的触发条件以及恢复策略。
