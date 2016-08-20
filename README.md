@@ -11,12 +11,30 @@ Ubuntu 14.04
 ## openni2 
 
 下载官方openni2库,链接地址：http://structure.io/openni
+![image](http://git.aiiage.com:9000/tian.y/tracker-dskcf/uploads/3948514d29e2aa98e0da79da2b7b2666/Screenshot_from_2016-08-20_11_37_43.png)
+根据系统选择所需要的版本，这里我选择了 **OpenNI 2.2.0.33 Beta (x64)**.
 
-export OPENNI_DIR=/home/exbot/Documents/OpenNI-Linux-x64-2.2
-export OPENNI2_INCLUDE=/home/exbot/Documents/OpenNI-Linux-x64-2.2/Include
-export OPENNI2_REDIST=/home/exbot/Documents/OpenNI-Linux-x64-2.2/Redist
+下载完成后解压到任意目录，打开文件夹，运行：
+```
+sudo ./install.sh
+```
+将生成的环境变量文件（OpenNIDevEnvironment）内的环境变量加入到系统环境变量：
+```
+gedit ~/.bashrc
+```
+将文件OpenNIDevEnvironment内的以下内容拷贝到.bashrc文件内：
 
+export OPENNI2_INCLUDE=/home/exbot/Downloads/OpenNI-Linux-x64-2.2/Include
+
+export OPENNI2_REDIST=/home/exbot/Downloads/OpenNI-Linux-x64-2.2/Redist
+
+生效环境变量：
+```
+source ~/.bashrc
+```
 ## opencv2.4
+
+opencv安装过程详见：http://git.aiiage.com:9000/algorithm/dev-doc/blob/master/OpenCV.md
 
 # 传感器：
 
@@ -26,43 +44,29 @@ export OPENNI2_REDIST=/home/exbot/Documents/OpenNI-Linux-x64-2.2/Redist
 
 Aiibot
 
+# 运行
 
-# 运行：
-
-to prepare :
-
+## 运行前为了通过串口向移动平台发送速度，需要修改串口权限:
+```
 sudo chmod 666 /dev/ttyUSB0
-
-## 4.编译：
 ```
-$catkin_make
-$source devel/setup.bash
+## 编译：
 ```
-## 5.运行：
-
-启动追踪程序
+mkdir bin
+mkdir build
+cd build
+cmake ..
+make
 ```
-to compile：
-
-  mkdir bin
-
-  mkdir build
-
-  cd build
-
-  cmake ..
-
-  make
-
-to run : 
-
-  ./../bin/main
+## 运行程序：
 ```
-## 6.使用程序
+./../bin/main
+```
+## 使用程序：
 
 程序启动后，在图像窗口内鼠标左键框选所要跟踪的目标.
 
-# 速度规划
+## 速度规划：
 
 |参数| 数值（单位m）|
 |:----:| -------------|
@@ -75,5 +79,5 @@ to run :
 
 目标距离相机1.5m时开始跟踪，初始速度0.4m/s，速度随着距离的增大而增加，
 最大距离5m是速度增加到0.6m/s。旋转速度初始为0, 随着目标偏移相机中心点的角度的增大而增加，
-最大叫速度为0.75rad/s。
+最大叫速度为0.75rad/s。速度参数可以在程序主文件main.cpp内修改。
 
