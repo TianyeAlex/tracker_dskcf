@@ -32,7 +32,7 @@ export OPENNI2_REDIST=/home/exbot/Downloads/OpenNI-Linux-x64-2.2/Redist
 ```
 source ~/.bashrc
 ```
-## opencv2.4
+## opencv
 
 opencv安装过程详见：http://git.aiiage.com:9000/algorithm/dev-doc/blob/master/OpenCV.md
 
