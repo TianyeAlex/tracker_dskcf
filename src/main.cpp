@@ -343,25 +343,26 @@ int main()
 
         if(enable_get_depth)
         {
-            dist_val[0] = depthimage.ptr<ushort>(result.y+result.height/3)[result.x+result.width/3];
-            dist_val[1] = depthimage.ptr<ushort>(result.y+result.height/3)[result.x+2*result.width/3];
-            dist_val[2] = depthimage.ptr<ushort>(result.y+2*result.height/3)[result.x+result.width/3] ;
-            dist_val[3] = depthimage.ptr<ushort>(result.y+2*result.height/3)[result.x+2*result.width/3] ;
-            dist_val[4] = depthimage.ptr<ushort>(result.y+result.height/2)[result.x+result.width/2] ;
+            // dist_val[0] = depthimage.ptr<ushort>(result.y+result.height/3)[result.x+result.width/3];
+            // dist_val[1] = depthimage.ptr<ushort>(result.y+result.height/3)[result.x+2*result.width/3];
+            // dist_val[2] = depthimage.ptr<ushort>(result.y+2*result.height/3)[result.x+result.width/3] ;
+            // dist_val[3] = depthimage.ptr<ushort>(result.y+2*result.height/3)[result.x+2*result.width/3] ;
+            // dist_val[4] = depthimage.ptr<ushort>(result.y+result.height/2)[result.x+result.width/2] ;
 
-            for(int i = 0; i < 5; i++)
-                dist_val[i] = dist_val[i] / 1000.0;
+            // for(int i = 0; i < 5; i++)
+            //     dist_val[i] = dist_val[i] / 1000.0;
 
-            float distance = 0;
-            int num_depth_points = 5;
-            for(int i = 0; i < 5; i++)
-            {
-                if(dist_val[i] > 0.4)
-                    distance += dist_val[i];
-                else
-                    num_depth_points--;
-            }
-            distance /= num_depth_points;
+            // float distance = 0;
+            // int num_depth_points = 5;
+            // for(int i = 0; i < 5; i++)
+            // {
+            //     if(dist_val[i] > 0.4)
+            //         distance += dist_val[i];
+            //     else
+            //         num_depth_points--;
+            // }
+            // distance /= num_depth_points;
+            float distance = tracker.getDepth(result, depthimage);
 
             //calculate linear speed
             if(distance > Min_distance)

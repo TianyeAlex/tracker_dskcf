@@ -100,6 +100,9 @@ public:
     // Update position based on the new frame
     virtual cv::Rect update(cv::Mat rgbimage, cv::Mat depthimage);
 
+    // Calculate depth of roi
+    float getDepth(cv::Rect roi, cv::Mat depthimage);
+
     float interp_factor; // linear interpolation factor for adaptation
     float sigma; // gaussian kernel bandwidth
     float lambda; // regularization
@@ -138,8 +141,7 @@ protected:
     // Calculate sub-pixel peak for one dimension
     float subPixelPeak(float left, float center, float right);
 
-    // Calculate depth of roi
-    float getDepth(cv::Rect roi, cv::Mat depthimage);
+    
 
     cv::Mat _alphaf;
     cv::Mat _prob;

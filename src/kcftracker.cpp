@@ -244,7 +244,7 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
             if (new_peak_value > peak_value) {
                 res = new_res;
                 peak_value = new_peak_value;
-                //_scale *= scale_step;
+                _scale *= scale_depth;
                 _roi.width *= scale_depth;
                 _roi.height *= scale_depth;
                 std::cout << " ------------------------scale_depth used : " << scale_depth << std::endl;
@@ -593,7 +593,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
 
     //initialise vectors
     float minDist = 0.0;
-    float maxDist = 6.0;
+    float maxDist = 10.0;
     float interval = 0.05;
     vector<vector<float>> result; 
 
@@ -666,7 +666,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
     {
         for(int i = 0; i < result.size(); i++)
         {
-            //fout << "vector " << i << " size "<< " " << result.at(i).size() << endl;
+            fout << "vector " << i << " size "<< " " << result.at(i).size() << endl;
             if(result.at(i).size() > maxSize)
             {
                 maxSize = result.at(i).size();
@@ -686,9 +686,9 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
             {
                 count[i] = result.at(i-2).size() + result.at(i-1).size() + result.at(i).size();
             }
-            // fout << "count " << i << " " << count[i] << endl << endl;
+            fout << "count " << i << " " << count[i] << endl << endl;
         }
-        //fout << "index : " << index  << "  maxSize : " << maxSize << endl;
+        fout << "index : " << index  << "  maxSize : " << maxSize << endl;
     }
 
     int maxCount = 0;
@@ -700,10 +700,10 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
             maxCount = count[i];
             indexCount = i;
         }
-        //fout << "count " << i << " : " << count[i] << endl;
+        fout << "count " << i << " : " << count[i] << endl;
     }
     
-    //fout << "indexCount " << indexCount <<" maxCount : " << maxCount << endl;
+    fout << "indexCount " << indexCount <<" maxCount : " << maxCount << endl;
                            
 
     //calcule mean depth of the vector
@@ -743,7 +743,7 @@ float KCFTracker::getDepth(cv::Rect roi, cv::Mat depthimage)
     
 
     fout.close();
-    cout << " distance " << distance << endl;
+    // cout << " distance " << distance << endl;
 
 
     // float dist_val[5] ;
