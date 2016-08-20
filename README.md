@@ -85,5 +85,6 @@ make
 
 # 针对kcf算法的改进：
 
-
+Ds-kcf算法框图：
+![image](http://git.aiiage.com:9000/tian.y/tracker-dskcf/uploads/9dc0b9f171ef269136f40d8b3bc01352/Screenshot_from_2016-08-20_17_52_47.png)
 
