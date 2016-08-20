@@ -2,6 +2,8 @@
 
 应用深度相机的Ds-kcf追踪算法，不需要依赖ros环境
 
+Ds-kcf论文链接：http://www.cs.bris.ac.uk/Publications/Papers/2001755.pdf
+
 # 开发环境：
 
 Ubuntu 14.04
