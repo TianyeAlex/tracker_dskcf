@@ -216,9 +216,9 @@ cv::Rect KCFTracker::update(cv::Mat image, cv::Mat depthimage)
         if(curr_depth - t0_depth < 0.12 && peak_value > 0.4)
         {
             occlusion = false;
-            std::cout << " **************************  no ----- occlusion  ************************ " << std::endl;
+            std::cout << " **************************  NO ************* occlusion  ************************ " << std::endl;
 
-            
+
         }
         else
             return _roi;
