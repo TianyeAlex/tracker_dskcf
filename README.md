@@ -93,7 +93,7 @@ Ds-kcf算法框图：
 原论文应用kmean聚类算法分割目标区域并统计目标深度，本程序应用区间分布原理，
 判断目标框内大部分像素点的深度分布并计算其深度值。
 
-代码详见kcftracker.cpp - getDepth（）；
+代码详见kcftracker.cpp - getDepth()；
 
 ### 2.根据深度信息计算目标框的大小比例。
 
@@ -101,7 +101,7 @@ Ds-kcf算法框图：
 
 scale = 上一帧目标深度 / 当前帧目标深度。
 
-代码详见kcftracker.cpp - update（）；
+代码详见kcftracker.cpp - update()；
 
 ### 3.根据深度信息判断遮挡问题的触发条件以及恢复策略。
 
