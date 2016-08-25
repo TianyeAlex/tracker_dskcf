@@ -8,13 +8,13 @@ Ds-kcf论文链接：http://www.cs.bris.ac.uk/Publications/Papers/2001755.pdf
 
 链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/2013%20Real-time%20RGB-D%20Tracking%20with%20Depth_Scaling%20Kernelised%20Correlation%20Filt.pdf
 
-相关dskcf算法原理内容详见文档：Ds-kcf算法.pptx
-
-链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/Ds-kcf%E7%AE%97%E6%B3%95.pptx
-
 相关kcf算法原理内容详见文档：KCF算法计算书.pdf
 
 链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/KCF%E7%AE%97%E6%B3%95%E8%AE%A1%E7%AE%97%E4%B9%A6.pdf
+
+这两部分算法与工作总结：Ds-kcf算法.pptx
+
+链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/Ds-kcf%E7%AE%97%E6%B3%95.pptx
 
 # 开发环境：
 
