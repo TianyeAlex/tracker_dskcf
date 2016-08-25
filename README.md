@@ -12,7 +12,7 @@ Ds-kcf论文链接：http://www.cs.bris.ac.uk/Publications/Papers/2001755.pdf
 
 链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/KCF%E7%AE%97%E6%B3%95%E8%AE%A1%E7%AE%97%E4%B9%A6.pdf
 
-这两部分算法与工作总结：Ds-kcf算法.pptx
+这两部分算法与工作总结：kcf-Dskcf算法总结.pptx
 
 链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/Ds-kcf%E7%AE%97%E6%B3%95.pptx
 
