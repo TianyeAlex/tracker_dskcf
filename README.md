@@ -3,6 +3,18 @@
 应用深度相机的Ds-kcf追踪算法，不需要依赖ros环境
 
 Ds-kcf论文链接：http://www.cs.bris.ac.uk/Publications/Papers/2001755.pdf
+ 
+或者参见程序内部文档：2013 Real-time RGB-D Tracking with Depth_Scaling Kernelised Correlation Filt.pdf
+
+链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/2013%20Real-time%20RGB-D%20Tracking%20with%20Depth_Scaling%20Kernelised%20Correlation%20Filt.pdf
+
+相关kcf算法原理内容详见文档：KCF算法计算书.pdf
+
+链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/KCF%E7%AE%97%E6%B3%95%E8%AE%A1%E7%AE%97%E4%B9%A6.pdf
+
+这两部分算法与工作总结：kcf-Dskcf算法总结.pptx
+
+链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/Ds-kcf%E7%AE%97%E6%B3%95.pptx
 
 # 开发环境：
 
@@ -34,9 +46,18 @@ export OPENNI2_REDIST=/home/exbot/Downloads/OpenNI-Linux-x64-2.2/Redist
 ```
 source ~/.bashrc
 ```
+
+关于openni2使用手册，参见程序内部文档：OpenNI_Programmers_Guide.pdf
+
+链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/OpenNI_Programmers_Guide.pdf
+
 ## opencv
 
 opencv安装过程详见：http://git.aiiage.com:9000/algorithm/dev-doc/blob/master/OpenCV.md
+
+关于opencv的学习与使用，参见程序内部文档：Learning OpenCV.pdf
+
+链接：http://git.aiiage.com:9000/tian.y/tracker-dskcf/blob/master/Learning%20OpenCV.pdf
 
 # 传感器：
 
